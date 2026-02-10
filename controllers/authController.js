@@ -1,0 +1,102 @@
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+exports.register = async (req, res) => {
+  const { email, password } = req.body;
+  console.log("email", email);
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ message: "User already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      role: "user",
+      isApproved: false,
+    });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    res.status(201).json({
+      message: "Registration successful. Please wait for admin approval.",
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getPendingUsers = async (req, res) => {
+  try {
+    const pendingUsers = await User.find({ isApproved: false }).select("-password");
+    res.json(pendingUsers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+exports.approveUser = async (req, res) => {
+  const { allowedVerticals } = req.body;
+  // example: ["AI", "DRONE/AI"] OR ["ALL"]
+
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    {
+      isApproved: true,
+      allowedVerticals,
+    },
+    { new: true }
+  );
+
+  res.json({
+    message: "User approved successfully",
+    user,
+  });
+};
+
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    if (!user.isApproved) {
+      return res.status(403).json({
+        message: "Account pending admin approval"
+      });
+    }
+
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" },
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
