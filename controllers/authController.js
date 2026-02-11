@@ -109,3 +109,33 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+exports.forgotPassword = async (req, res) => {
+  const { email, newPassword, confirmPassword } = req.body;
+
+  try {
+    if (!email || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: "Password reset successful. Please login with new password." });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
