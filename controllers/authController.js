@@ -43,6 +43,15 @@ exports.getPendingUsers = async (req, res) => {
   }
 };
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 exports.approveUser = async (req, res) => {
   const { allowedVerticals } = req.body;

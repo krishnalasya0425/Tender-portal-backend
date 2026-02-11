@@ -14,6 +14,9 @@ exports.createTender = async (req, res) => {
     res.status(201).json(tender);
   } catch (err) {
     console.error("Tender creation error:", err.message);
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Tender Number already exists" });
+    }
     res.status(500).json({ message: err.message });
   }
 };
@@ -26,7 +29,7 @@ exports.getTenders = async (req, res) => {
     // For regular users, filter by allowed verticals
     if (req.user.role === "user") {
       const user = await User.findById(req.user.id);
-      
+
       // If user has "ALL" permission, don't filter by vertical
       if (!user.allowedVerticals.includes("ALL")) {
         query.Vertical = { $in: user.allowedVerticals };
@@ -44,7 +47,7 @@ exports.getTenders = async (req, res) => {
 exports.updateTender = async (req, res) => {
   try {
     let query;
-    
+
     // Admin can update any tender, regular users can only update their own
     if (req.user.role === "admin") {
       query = { _id: req.params.id };
@@ -71,6 +74,9 @@ exports.updateTender = async (req, res) => {
     res.json(tender);
   } catch (err) {
     console.error("Tender update error:", err.message);
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Tender Number already exists" });
+    }
     res.status(500).json({ message: err.message });
   }
 };
@@ -79,7 +85,7 @@ exports.updateTender = async (req, res) => {
 exports.deleteTender = async (req, res) => {
   try {
     let query;
-    
+
     // Admin can delete any tender, regular users can only delete their own
     if (req.user.role === "admin") {
       query = { _id: req.params.id };
@@ -104,7 +110,7 @@ exports.deleteTender = async (req, res) => {
 exports.getTenderById = async (req, res) => {
   try {
     let query = { _id: req.params.id };
-    
+
     // For non-admin users, also check vertical permissions
     if (req.user.role === "user") {
       const user = await User.findById(req.user.id);
@@ -112,7 +118,7 @@ exports.getTenderById = async (req, res) => {
     }
 
     const tender = await Tender.findOne(query);
-    
+
     if (!tender) {
       return res.status(404).json({ message: "Tender not found or not authorized" });
     }
