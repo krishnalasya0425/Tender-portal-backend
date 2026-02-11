@@ -55,7 +55,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.approveUser = async (req, res) => {
   const { allowedVerticals } = req.body;
-  // example: ["AI", "DRONE/AI"] OR ["ALL"]
+
 
   const user = await User.findByIdAndUpdate(
     req.params.id,
