@@ -19,7 +19,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/tenders", require("./routes/tenderRoutes"));
 
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
 
