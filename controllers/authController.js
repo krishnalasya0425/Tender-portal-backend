@@ -43,10 +43,19 @@ exports.getPendingUsers = async (req, res) => {
   }
 };
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 exports.approveUser = async (req, res) => {
   const { allowedVerticals } = req.body;
-  // example: ["AI", "DRONE/AI"] OR ["ALL"]
+
 
   const user = await User.findByIdAndUpdate(
     req.params.id,
@@ -96,6 +105,36 @@ exports.login = async (req, res) => {
         role: user.role,
       },
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+exports.forgotPassword = async (req, res) => {
+  const { email, newPassword, confirmPassword } = req.body;
+
+  try {
+    if (!email || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: "Password reset successful. Please login with new password." });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -2,37 +2,37 @@ const mongoose = require('mongoose');
 
 const tenderSchema = new mongoose.Schema({
   SNo: String,
-  TenderNumber: String,
+  TenderNumber: { type: String, unique: true },
   Description: String,
   Vertical: {
-      type: String,
-      enum: [
-        "AR/VR",
-        "AI",
-        "AI/UGV",
-        "UGV",
-        "OTHERS",
-        "DRONE/AI",
-        "UAV",
-        "RCWS/AWS",
-      ],
-      required: true,
-    },
+    type: String,
+    enum: [
+      "AR/VR",
+      "AI",
+      "AI/UGV",
+      "UGV",
+      "OTHERS",
+      "DRONE/AI",
+      "UAV",
+      "RCWS/AWS",
+    ],
+    required: true,
+  },
   Deadline: Date,
   Status: String,
   BidPrice: String,
   CurrentStatusDescription: String,
- Gem: {
-  type: String,
-  enum: [
-    "Catalogue Uploaded",
-    "Costing",
-    "Submitted",
-  ],
-  default: null,
+  Gem: {
+    type: String,
+    enum: [
+      "Catalogue Uploaded",
+      "Costing",
+      "Submitted",
+    ],
+    default: null,
 
 
-},
+  },
 
   OrganisationName: String,
   EMD: String,
@@ -44,9 +44,9 @@ const tenderSchema = new mongoose.Schema({
   Link: String,
   Remarks: String,
   DeadlineReminderSent: {
-  type: Boolean,
-  default: false
-},
+    type: Boolean,
+    default: false
+  },
 
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
