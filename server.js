@@ -15,7 +15,7 @@ app.use(cors({
 
 app.use(express.json());
 app.get("/test", (req, res) => {
-  res.json({ status: "ok efff" });
+  res.json({ status: "ok Edgeforce" });
 });
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/tenders", require("./routes/tenderRoutes"));
