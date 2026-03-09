@@ -4,29 +4,43 @@ const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res) => {
   const { email, password } = req.body;
-  console.log("email", email);
+
   try {
+    // Check if any user already exists
+    const userCount = await User.countDocuments();
+
+    // First user becomes admin
+    const role = userCount === 0 ? "admin" : "user";
+
     const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       email,
       password: hashedPassword,
-      role: "user",
-      isApproved: false,
+      role,
+      isApproved: role === "admin" ? true : false,
     });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
     res.status(201).json({
-      message: "Registration successful. Please wait for admin approval.",
+      message:
+        role === "admin"
+          ? "Admin account created successfully."
+          : "Registration successful. Please wait for admin approval.",
       token,
       user: {
         id: user._id,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (err) {
