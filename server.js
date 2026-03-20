@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const cors = require("cors");
+const tenderImportRoutes = require('./routes/tenderImport');
 
 dotenv.config();
 connectDB();
@@ -19,6 +20,7 @@ app.get("/test", (req, res) => {
 });
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/tenders", require("./routes/tenderRoutes"));
+app.use('/api/tenders/import', tenderImportRoutes);
 
 const PORT = process.env.PORT;
 app.listen(PORT, "0.0.0.0", () => {
