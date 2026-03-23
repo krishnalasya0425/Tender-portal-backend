@@ -35,6 +35,7 @@ const tenderSchema = new mongoose.Schema({
   },
 
   OrganisationName: String,
+   Location: String,
   EMD: String,
   Prebid: String,
   L1BidDetails: String,
